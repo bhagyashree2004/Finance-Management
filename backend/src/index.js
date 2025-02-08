@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { connectDB } from './lib/db.js';
 import authRoutes from "./routes/authRoutes.js";
+import expenseRoutes from "./routes/expenseRoute.js";
 
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 
 app.use("/api/auth",authRoutes);
+app.use("/api/expenseRoute",expenseRoutes);
 
 app.listen(PORT,() => {
     console.log(`Server is running on PORT http://localhost:${PORT}`)

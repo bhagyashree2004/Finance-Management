@@ -1,5 +1,5 @@
 import express from "express";
-import { checkAuth, login, signup } from "../controllers/auth.js";
+import { checkAuth, login, logout, signup } from "../controllers/auth.js";
 import { protectRoute } from "../middleware/authCheck.js";
 
 
@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
-// router.post("/logout", logout);
+router.post("/logout", logout);
 
 router.get("/check",protectRoute,checkAuth)
 
