@@ -3,6 +3,7 @@ import Income from "../models/income.js";
 // Controller to add income
 export const addIncome = async (req, res) => {
     try {
+        console.log("in route")
         const { source, amount } = req.body;
         const userId = req.user._id;  // Extract user ID from authenticated request
 

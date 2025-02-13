@@ -1,6 +1,8 @@
 import Expense from "../models/expense.js";
 import csvParser from "csv-parser";
 import { Readable } from "stream";
+import mongoose from 'mongoose';
+
 
 export const addExpense = async (req, res) => {
     try {
@@ -30,6 +32,10 @@ export const addExpense = async (req, res) => {
     }
 };
 
+export const deleteExpence = async (req, res) => {
+    await Expense.findByIdAndDelete(req.params.id);
+    res.json({ message: "Expense deleted" });
+  };
 // Controller to get all expense records for a user
 export const getExpense = async (req, res) => {
     try {
@@ -59,6 +65,7 @@ export const bulkUploadExpenses = async (req, res) => {
         stream
             .pipe(csvParser())
             .on("data", (row) => {
+                console.log(row)
                 if (row.category && row.amount && row.date && row.currency) {
                     expenses.push({
                         userId,
@@ -71,6 +78,7 @@ export const bulkUploadExpenses = async (req, res) => {
                 }
             })
             .on("end", async () => {
+                console.log(expenses)
                 if (expenses.length === 0) {
                     return res.status(400).json({ message: "No valid data found in CSV" });
                 }
@@ -88,3 +96,40 @@ export const bulkUploadExpenses = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+
+
+// Route to get expenses categorized by week and month
+export const chartbymonth = async (req, res) => {
+    try {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+      sixMonthsAgo.setDate(1); // Start from the first day of that month
+  
+      const expenses = await Expense.aggregate([
+        { $match: { date: { $gte: sixMonthsAgo } } }, // Filter last 6 months
+        {
+          $group: {
+            _id: { $dateToString: { format: "%m-%Y", date: "$date" } }, // Month-Year format (e.g., 03-2024)
+            total: { $sum: "$amount" },
+          },
+        },
+        { $sort: { _id: 1 } }, // Sort in ascending order
+      ]);
+  
+      // Convert "MM-YYYY" format to "Month YYYY"
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+      const formattedExpenses = expenses.map(item => {
+        const [month, year] = item._id.split("-"); // Split MM-YYYY
+        return {
+          month: `${monthNames[parseInt(month, 10) - 1]} ${year}`, // Convert MM to month name
+          total: item.total,
+        };
+      });
+  
+      res.json(formattedExpenses);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };

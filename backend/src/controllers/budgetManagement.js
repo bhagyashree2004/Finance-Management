@@ -1,4 +1,6 @@
 import Budget from "../models/budget.js";
+import Expense from "../models/expense.js";
+import Income from "../models/income.js";
 
 // Controller to add a budget
 export const addBudget = async (req, res) => {
@@ -34,5 +36,58 @@ export const getBudgets = async (req, res) => {
     } catch (err) {
         console.error("Error fetching budgets:", err.message);
         res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const getMonthly =  async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const currentMonth = new Date().getMonth();
+        const currentYear = new Date().getFullYear();
+
+        // Fetch income for the current month
+        const totalIncome = await Income.aggregate([
+            {
+                $match: {
+                    userId: userId,
+                    date: {
+                        $gte: new Date(currentYear, currentMonth, 1),
+                        $lt: new Date(currentYear, currentMonth + 1, 1)
+                    }
+                }
+            },
+            {
+                $group: { _id: null, total: { $sum: "$amount" } }
+            }
+        ]);
+
+        // Fetch expenses for the current month
+        const totalExpense = await Expense.aggregate([
+            {
+                $match: {
+                    userId: userId,
+                    date: {
+                        $gte: new Date(currentYear, currentMonth, 1),
+                        $lt: new Date(currentYear, currentMonth + 1, 1)
+                    }
+                }
+            },
+            {
+                $group: { _id: null, total: { $sum: "$amount" } }
+            }
+        ]);
+
+        const income = totalIncome.length > 0 ? totalIncome[0].total : 0;
+        const expense = totalExpense.length > 0 ? totalExpense[0].total : 0;
+
+        res.json({
+            totalIncome: income,
+            totalExpense: expense,
+            totalBudget: income - expense
+        });
+
+    } catch (error) {
+        console.error("Error fetching budget summary:", error);
+        res.status(500).json({ message: "Server error" });
     }
 };

@@ -3,6 +3,7 @@ import User from "../models/user.js";
 
 export const signup = async (req,res) => {
     const {fullName,email,password,confirmPassword} = req.body;
+    
     try{
         // hash password
         if (!fullName || !email || !password || !confirmPassword){
