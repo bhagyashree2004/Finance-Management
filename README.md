@@ -54,7 +54,7 @@ Follow these steps to run the application locally:
 bash
 Copy
 Edit
-git clone https://github.com/bhagyashreeumbarkar14304@gmail.com/finance-tracker.git
+git clone https://github.com/bhagyashree2004/finance-tracker.git
 cd finance-tracker
 2. Install dependencies for both frontend and backend:
 Backend:
